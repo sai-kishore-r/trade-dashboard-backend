@@ -5,6 +5,7 @@ import YAML from "yamljs";
 
 import marketBreadthRouter from "./controller/market-breadth.js";
 import statsRouter from "./controller/stats.js";
+import placeOrder from"./controller/place-order.js";
 import mongoConnectionInstance from "./database/mongo.js";
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(marketBreadthRouter);
 app.use(statsRouter);
+app.use(placeOrder);
 
 const swaggerDocument = YAML.load("./src/swagger.yaml");
 
