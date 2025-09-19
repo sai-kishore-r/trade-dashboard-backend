@@ -5,7 +5,7 @@ import YAML from "yamljs";
 
 import marketBreadthRouter from "./controller/market-breadth.js";
 import statsRouter from "./controller/stats.js";
-import placeOrder from"./controller/place-order.js";
+import placeOrder from "./controller/place-order.js";
 import mongoConnectionInstance from "./database/mongo.js";
 
 const app = express();
@@ -22,7 +22,4 @@ const swaggerDocument = YAML.load("./src/swagger.yaml");
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-const PORT = 3015;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+export default app;

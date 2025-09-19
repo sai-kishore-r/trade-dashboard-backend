@@ -17,7 +17,7 @@ router.post('/place-order', async (req, res) => {
         }
 
         const response = await axios.post(
-            'https://api.upstox.com/place-order',
+            'https://api-hft.upstox.com/v3/order/place',
             orderPayload,
             {
                 headers: {
@@ -27,8 +27,9 @@ router.post('/place-order', async (req, res) => {
                 },
             }
         );
+        console.log(response)
 
-        const gttTriggerPrice = orderPayload.exit_price || orderPayload.sl; // exit price / stop loss price
+        const gttTriggerPrice = orderPayload.trigger_price; // exit price / stop loss price
         const quantityBought = orderPayload.quantity;
         const instrumentToken = orderPayload.instrument_token;
         const product = 'D';
