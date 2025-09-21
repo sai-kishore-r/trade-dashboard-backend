@@ -2,6 +2,8 @@
 
 import Instrument52WeekStatsSQL from '../schema/RDB/instrument52WStats.js'; // Sequelize model
 import Instrument52WeekStatsMongo from '../schema/Mongo/instrument52WStats.js'; // Mongoose model (example)
+import MarketBreadthSQL from '../schema/RDB/marketBreath.js';
+import MarketBreadthMongo from '../schema/Mongo/marketBreadth.js';
 import { sequelize } from '../database/index.js';
 
 const USE_MONGO = false; // or pass as param
@@ -50,9 +52,50 @@ async function getAllInstrument52WeekStats() {
   }
 }
 
+async function upsertMarketBreadth(data) {
+  if (USE_MONGO) {
+    // MongoDB upsert logic
+    if (Array.isArray(data)) {
+      // Bulk upsert with Promise.all (iterate documents)
+      return await Promise.all(data.map(async (doc) => {
+        const query = { date: doc.date };
+        const update = { $set: doc };
+        const options = { upsert: true, new: true };
+        return await MarketBreadthMongo.findOneAndUpdate(query, update, options);
+      }));
+    } else {
+      const query = { date: data.date };
+      const update = { $set: data };
+      const options = { upsert: true, new: true };
+      return await MarketBreadthMongo.findOneAndUpdate(query, update, options);
+    }
+  } else {
+    // Sequelize upsert logic
+    await sequelize.sync();
+    if (Array.isArray(data)) {
+      // Sequelize does not have batch upsert, so batch with Promise.all
+      return await Promise.all(data.map(doc => MarketBreadthSQL.upsert(doc)));
+    } else {
+      return await MarketBreadthSQL.upsert(data);
+    }
+  }
+}
+
+async function getAllMarketBreadth() {
+  if (USE_MONGO) {
+    return await MarketBreadthMongo.find().sort({ date: -1 }).exec();
+  } else {
+    return await MarketBreadthSQL.findAll({
+      order: [["date", "DESC"]],
+    });
+  }
+}
+
 // Similarly for other operations...
 
 export default {
   upsertInstrument52WeekStats,
-  getAllInstrument52WeekStats
+  getAllInstrument52WeekStats,
+  upsertMarketBreadth,
+  getAllMarketBreadth,
 };
