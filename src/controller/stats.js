@@ -6,6 +6,7 @@ import Instrument52WeekStats from "../schema/RDB/instrument52WStats.js";
 import {
     calculateIncrementalEMA, calculate52WeekHighLow,
     calculateEMA, calculateAverageVolume, calculateAverageValueVolume,
+    calculateAverageClose,
 } from "../utils/index.js";
 import dbWrapper from '../utils/dbWrapper.js';
 import niftymidsmall400 from '../index/niftymidsmall400.json' with { type: 'json' };
@@ -47,6 +48,22 @@ router.post("/sync-52week-stats", async (req, res) => {
 
                 const avgVolume21d = calculateAverageVolume(candles, 21);
 
+                const candlesLength = candles.length;
+
+                // Calculate minVolume3d (minimum volume in last 3 days)
+                const minVolume3d = Math.min(...candles.slice(0, 3).map(c => c[5]));
+
+                // Previous day close prices
+                const closePrev1 = candlesLength > 1 ? candles[1][4] : null;
+                const closePrev2 = candlesLength > 2 ? candles[2][4] : null;
+                
+                // Calculate trendIntensity = avgClose7d / avgClose65d
+                const avgClose7d = candlesLength >= 7 ? calculateAverageClose(candles.slice(0, 7)) : null;
+                const avgClose65d = candlesLength >= 65 ? calculateAverageClose(candles.slice(0, 65)) : null;
+                const trendIntensity = (avgClose7d !== null && avgClose65d !== null && avgClose65d !== 0)
+                    ? avgClose7d / avgClose65d
+                    : null;
+
                 const data = {
                     instrumentKey: instrument.instrument_key,
                     tradingsymbol: instrument.tradingsymbol,
@@ -61,6 +78,10 @@ router.post("/sync-52week-stats", async (req, res) => {
                     lastUpdated: new Date(),
                     prevDayVolume: candles[0][5],
                     avgValueVolume21d,
+                    minVolume3d,
+                    trendIntensity,
+                    closePrev1,
+                    closePrev2,
                 };
 
                 await dbWrapper.upsertInstrument52WeekStats(data);

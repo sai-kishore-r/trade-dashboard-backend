@@ -8,13 +8,17 @@ const Instrument52WeekStats = sequelize.define('Instrument52WeekStats', {
   fiftyTwoWeekHigh: { type: DataTypes.DECIMAL(15, 4), allowNull: false },
   fiftyTwoWeekLow: { type: DataTypes.DECIMAL(15, 4), allowNull: false },
   lastPrice: { type: DataTypes.DECIMAL(15, 4) },
-  ema10: { type: DataTypes.DECIMAL(15, 4) },   
-  ema21: { type: DataTypes.DECIMAL(15, 4) },   
-  ema50: { type: DataTypes.DECIMAL(15, 4) },   
+  ema10: { type: DataTypes.DECIMAL(15, 4) },
+  ema21: { type: DataTypes.DECIMAL(15, 4) },
+  ema50: { type: DataTypes.DECIMAL(15, 4) },
   lastUpdated: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   avgVolume21d: { type: DataTypes.INTEGER },
   prevDayVolume: { type: DataTypes.INTEGER },
   avgValueVolume21d: { type: DataTypes.BIGINT },
+  minVolume3d: { type: DataTypes.INTEGER },       // minv3.1 volume
+  trendIntensity: { type: DataTypes.DECIMAL(15, 4) },  // avgc7 / avgc65 ratio
+  closePrev1: { type: DataTypes.DECIMAL(15, 4) },  // previous day close, c1
+  closePrev2: { type: DataTypes.DECIMAL(15, 4) },
 }, {
   tableName: 'instrument_52week_stats',
   timestamps: false,

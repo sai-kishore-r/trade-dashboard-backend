@@ -51,17 +51,37 @@ const Instrument52WeekStatsSchema = new mongoose.Schema({
     default: null,
   },
   avgValueVolume21d: {
-    type: Number,    // <-- add this new field for avg value of volume
+    type: Number,
     default: null,
   },
+
+  // Newly added fields:
+  minVolume3d: { 
+    type: Number,
+    default: null,
+  },
+  trendIntensity: { 
+    type: mongoose.Schema.Types.Decimal128,
+    default: null,
+  },
+  closePrev1: {
+    type: mongoose.Schema.Types.Decimal128,
+    default: null,
+  },
+  closePrev2: {
+    type: mongoose.Schema.Types.Decimal128,
+    default: null,
+  },
+
 }, {
   collection: 'instrument_52week_stats',
   timestamps: false,
 });
 
+// Update JSON and Object transforms to include new Decimal128 fields
 Instrument52WeekStatsSchema.set('toJSON', {
   transform: (doc, ret) => {
-    ['ema10', 'ema21', 'ema50', 'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'lastPrice'].forEach(field => {
+    ['ema10', 'ema21', 'ema50', 'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'lastPrice', 'trendIntensity', 'closePrev1', 'closePrev2'].forEach(field => {
       if (ret[field] && ret[field]._bsontype === 'Decimal128') {
         ret[field] = ret[field].toString();
       }
@@ -72,14 +92,14 @@ Instrument52WeekStatsSchema.set('toJSON', {
 
 Instrument52WeekStatsSchema.set('toObject', {
   transform: (doc, ret) => {
-    ['ema10', 'ema21', 'ema50', 'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'lastPrice'].forEach(field => {
+    ['ema10', 'ema21', 'ema50', 'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'lastPrice', 'trendIntensity', 'closePrev1', 'closePrev2'].forEach(field => {
       if (ret[field] && ret[field]._bsontype === 'Decimal128') {
         ret[field] = ret[field].toString();
       }
     });
     return ret;
   }
-})
+});
 
 const Instrument52WeekStats = mongoose.model('Instrument52WeekStats', Instrument52WeekStatsSchema);
 

@@ -26,13 +26,17 @@ async function upsertInstrument52WeekStats(data) {
         lastUpdated: data.lastUpdated || new Date(),
         prevDayVolume: data.prevDayVolume,
         avgValueVolume21d: data.avgValueVolume21d,
+        minVolume3d: data.minVolume3d,
+        trendIntensity: data.trendIntensity,
+        closePrev1: data.closePrev1,
+        closePrev2: data.closePrev2,
       },
     };
     const options = { upsert: true, new: true };
     return await Instrument52WeekStatsMongo.findOneAndUpdate(query, update, options);
   } else {
     // Sequelize upsert
-        await sequelize.sync();
+    await sequelize.sync();
 
     return await Instrument52WeekStatsSQL.upsert(data);
   }
