@@ -31,6 +31,36 @@ const MarketBreadthSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  strongCloseUpCount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  strongCloseUpRatio: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  strongCloseDownCount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  strongCloseDownRatio: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  intentScoreUp: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  intentScoreDown: {
+    type: Number,
+    required: true,
+    default: 0,
+  }
 }, {
   collection: 'market_breadth',
   timestamps: false,

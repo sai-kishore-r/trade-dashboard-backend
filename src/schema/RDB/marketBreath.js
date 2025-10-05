@@ -31,6 +31,36 @@ const MarketBreadth = sequelize.define('MarketBreadth', {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0
+  },
+  strongCloseUpCount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  strongCloseUpRatio: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0
+  },
+  strongCloseDownCount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  strongCloseDownRatio: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0
+  },
+  intentScoreUp: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0
+  },
+  intentScoreDown: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   tableName: 'market_breadth',
