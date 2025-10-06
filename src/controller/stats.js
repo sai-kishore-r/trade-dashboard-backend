@@ -10,11 +10,12 @@ import {
 } from "../utils/index.js";
 import dbWrapper from '../utils/dbWrapper.js';
 import niftymidsmall400 from '../index/niftymidsmall400.json' with { type: 'json' };
+import niftylargeCap from '../index/niftylargecap.json' with { type: 'json' };
 
 const router = express.Router();
 
 router.post("/sync-52week-stats", async (req, res) => {
-    const stocks = niftymidsmall400;
+    const stocks = [...niftymidsmall400, ...niftylargeCap];
 
     if (!Array.isArray(stocks) || stocks.length === 0) {
         return res.status(400).json({ error: "Invalid or empty stocks input" });
