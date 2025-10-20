@@ -65,6 +65,11 @@ export function calculateAverageValueVolume(candles, days = 21) {
 }
 
 export function calculateAverageClose(arr) {
-  const sumClose = arr.reduce((sum, c) => sum + c[4], 0);
+  const sumClose = arr.reduce((sum, c) => {
+    const closePrice = c[4];
+    
+    return  sum + closePrice;
+  }, 0);
+
   return sumClose / arr.length;
 }

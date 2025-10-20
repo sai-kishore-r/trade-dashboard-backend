@@ -57,12 +57,19 @@ router.post("/sync-52week-stats", async (req, res) => {
                 // Previous day close prices
                 const closePrev1 = candlesLength > 1 ? candles[1][4] : null;
                 const closePrev2 = candlesLength > 2 ? candles[2][4] : null;
-                
+
                 // Calculate trendIntensity = avgClose7d / avgClose65d
                 const avgClose7d = candlesLength >= 7 ? calculateAverageClose(candles.slice(0, 7)) : null;
                 const avgClose65d = candlesLength >= 65 ? calculateAverageClose(candles.slice(0, 65)) : null;
                 const trendIntensity = (avgClose7d !== null && avgClose65d !== null && avgClose65d !== 0)
                     ? avgClose7d / avgClose65d
+                    : null;
+                const avgClose126d = candlesLength >= 126 ? calculateAverageClose(candles.slice(0, 126)) : 0;
+                const lastPrice = candles[0][4];
+                const prevClose = candlesLength > 1 ? candles[1][4] : null;
+
+                const priceChange = (prevClose && prevClose !== 0)
+                    ? ((lastPrice - prevClose) / prevClose) * 100
                     : null;
 
                 const data = {
@@ -71,7 +78,8 @@ router.post("/sync-52week-stats", async (req, res) => {
                     lastSyncDate: endDate,
                     fiftyTwoWeekHigh: high,
                     fiftyTwoWeekLow: low,
-                    lastPrice: candles[0][4],
+                    lastPrice,
+                    priceChange,
                     ema10,
                     ema21,
                     ema50,
@@ -83,6 +91,7 @@ router.post("/sync-52week-stats", async (req, res) => {
                     trendIntensity,
                     closePrev1,
                     closePrev2,
+                    avgClose126d,
                 };
 
                 await dbWrapper.upsertInstrument52WeekStats(data);

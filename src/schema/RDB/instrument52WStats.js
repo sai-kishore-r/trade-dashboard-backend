@@ -15,10 +15,12 @@ const Instrument52WeekStats = sequelize.define('Instrument52WeekStats', {
   avgVolume21d: { type: DataTypes.INTEGER },
   prevDayVolume: { type: DataTypes.INTEGER },
   avgValueVolume21d: { type: DataTypes.BIGINT },
+  avgClose126d: { type: DataTypes.DECIMAL(15, 4) },
   minVolume3d: { type: DataTypes.INTEGER },       // minv3.1 volume
   trendIntensity: { type: DataTypes.DECIMAL(15, 4) },  // avgc7 / avgc65 ratio
   closePrev1: { type: DataTypes.DECIMAL(15, 4) },  // previous day close, c1
   closePrev2: { type: DataTypes.DECIMAL(15, 4) },
+  priceChange: { type: DataTypes.DECIMAL(10, 4) },
 }, {
   tableName: 'instrument_52week_stats',
   timestamps: false,
