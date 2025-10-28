@@ -12,6 +12,21 @@ let defaultClient = UpstoxClient.ApiClient.instance;
 const OAUTH2 = defaultClient.authentications["OAUTH2"];
 OAUTH2.accessToken = process.env.VITE_UPSTOXS_ACCESS_KEY;
 
+const MARKET_OPEN_HOUR = 9;
+const MARKET_OPEN_MINUTE = 15;
+const TRACKING_DURATION_MINUTES = 30;
+
+const isWithinFirst30Mins = (timestamp) => {
+  const tsDate = new Date(Number(timestamp));
+  
+  // Build market open time for that same date
+  const marketOpen = new Date(tsDate);
+  marketOpen.setHours(MARKET_OPEN_HOUR, MARKET_OPEN_MINUTE, 0, 0);
+
+  const diffMinutes = (tsDate - marketOpen) / (1000 * 60);
+  return diffMinutes >= 0 && diffMinutes <= TRACKING_DURATION_MINUTES;
+};
+
 // Scan states
 const scanStates = {
   newHigh: {
@@ -25,6 +40,11 @@ const scanStates = {
 const processNewHighScan = async (symbol, ohlc) => {
   const { prevHighs, newHighCounts } = scanStates.newHigh;
   const currentHigh = ohlc.high;
+
+  if (!isWithinFirst30Mins(ohlc.ts)) {
+    // Optional: log or skip silently
+    return;
+  }
 
   try {
     if (!(symbol in prevHighs)) {
