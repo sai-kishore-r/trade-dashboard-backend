@@ -4,9 +4,13 @@ import Instrument52WeekStatsSQL from '../schema/RDB/instrument52WStats.js'; // S
 import Instrument52WeekStatsMongo from '../schema/Mongo/instrument52WStats.js'; // Mongoose model (example)
 import MarketBreadthSQL from '../schema/RDB/marketBreath.js';
 import MarketBreadthMongo from '../schema/Mongo/marketBreadth.js';
+import ScansSql from '../schema/RDB/scans.js';
+import ScansMongo from '../schema/Mongo/scans.js';
 import { sequelize } from '../database/index.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const USE_MONGO = false; // or pass as param
+const USE_MONGO = process.env.USE_MONGO === 'true';
 
 async function upsertInstrument52WeekStats(data) {
   if (USE_MONGO) {
@@ -97,6 +101,33 @@ async function getAllMarketBreadth() {
   }
 }
 
+async function upsertScans(data) {
+  if (USE_MONGO) {
+    if (Array.isArray(data)) {
+      return await Promise.all(
+        data.map(async (doc) => {
+          const query = { symbol: doc.symbol, date: doc.date, scanType: doc.scanType };
+          const update = { $set: doc };
+          const options = { upsert: true, new: true };
+          return await ScansMongo.findOneAndUpdate(query, update, options);
+        })
+      );
+    } else {
+      const query = { symbol: data.symbol, date: data.date, scanType: data.scanType };
+      const update = { $set: data };
+      const options = { upsert: true, new: true };
+      return await ScansMongo.findOneAndUpdate(query, update, options);
+    }
+  } else {
+    await sequelize.sync();
+    if (Array.isArray(data)) {
+      return await Promise.all(data.map((doc) => ScansSql.upsert(doc)));
+    } else {
+      return await ScansSql.upsert(data);
+    }
+  }
+}
+
 // Similarly for other operations...
 
 export default {
@@ -104,4 +135,5 @@ export default {
   getAllInstrument52WeekStats,
   upsertMarketBreadth,
   getAllMarketBreadth,
+  upsertScans,
 };

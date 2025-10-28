@@ -7,10 +7,12 @@ import marketBreadthRouter from "./controller/market-breadth.js";
 import statsRouter from "./controller/stats.js";
 import placeOrder from "./controller/place-order.js";
 import mongoConnectionInstance from "./database/mongo.js";
+import { connectWsUpstoxs } from "./ws/index.js";
 
 const app = express();
 
 await mongoConnectionInstance.connect();
+connectWsUpstoxs();
 
 app.use(cors());
 app.use(express.json());
