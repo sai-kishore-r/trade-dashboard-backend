@@ -31,6 +31,16 @@ const MarketBreadthSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  up8Pct5d: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  down8Pct5d: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   strongCloseUpCount: {
     type: Number,
     required: true,

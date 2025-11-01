@@ -72,8 +72,10 @@ router.post("/sync-52week-marketbreath", async (req, res) => {
                 total: 0,
                 up20Count: 0,
                 down20Count: 0,
+                up8Count5d: 0,
+                down8Count5d: 0,
                 strongCloseUpCount: 0,
-                strongCloseDownCount: 0
+                strongCloseDownCount: 0,
               });
             }
 
@@ -111,6 +113,11 @@ router.post("/sync-52week-marketbreath", async (req, res) => {
               } else if (pctChange5d <= -20) {
                 dayStats.down20Count++;
               }
+              if (pctChange5d >= 8) {
+                dayStats.up8Count5d++;
+              } else if (pctChange5d <= -8) {
+                dayStats.down8Count5d++;
+              }
             }
           }
         } catch (e) {
@@ -138,6 +145,8 @@ router.post("/sync-52week-marketbreath", async (req, res) => {
         totalStocks: stats.total,
         up20Pct5d: stats.up20Count || 0,
         down20Pct5d: stats.down20Count || 0,
+        up8Pct5d: stats.up8Count5d || 0,
+        down8Pct5d: stats.down8Count5d || 0,
         strongCloseUpCount: stats.strongCloseUpCount,
         strongCloseUpRatio,
         strongCloseDownCount: stats.strongCloseDownCount,

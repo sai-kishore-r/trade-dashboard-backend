@@ -32,6 +32,16 @@ const MarketBreadth = sequelize.define('MarketBreadth', {
     allowNull: false,
     defaultValue: 0
   },
+  up8Pct5d: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  down8Pct5d: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
   strongCloseUpCount: {
     type: DataTypes.INTEGER,
     allowNull: false,

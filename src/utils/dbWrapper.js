@@ -95,6 +95,7 @@ async function getAllMarketBreadth() {
   if (USE_MONGO) {
     return await MarketBreadthMongo.find().sort({ date: -1 }).exec();
   } else {
+    await sequelize.sync();
     return await MarketBreadthSQL.findAll({
       order: [["date", "DESC"]],
     });
