@@ -6,6 +6,7 @@ import YAML from "yamljs";
 import marketBreadthRouter from "./controller/market-breadth.js";
 import statsRouter from "./controller/stats.js";
 import placeOrder from "./controller/place-order.js";
+import health from "./controller/health.js";
 import mongoConnectionInstance from "./database/mongo.js";
 import { connectWsUpstoxs } from "./ws/index.js";
 
@@ -16,6 +17,7 @@ connectWsUpstoxs();
 
 app.use(cors());
 app.use(express.json());
+app.use(health);
 app.use(marketBreadthRouter);
 app.use(statsRouter);
 app.use(placeOrder);
