@@ -18,7 +18,7 @@ const TRACKING_DURATION_MINUTES = 30;
 
 const isWithinFirst30Mins = (timestamp) => {
   const tsDate = new Date(Number(timestamp));
-  
+
   // Build market open time for that same date
   const marketOpen = new Date(tsDate);
   marketOpen.setHours(MARKET_OPEN_HOUR, MARKET_OPEN_MINUTE, 0, 0);
@@ -80,36 +80,38 @@ const processNewHighScan = async (symbol, ohlc) => {
 // Additional scan functions can be declared similarly
 
 export const connectWsUpstoxs = () => {
-  try {
-    const streamer = new UpstoxClient.MarketDataStreamerV3(stockUniverse, "full");
-    streamer.connect();
+  const streamer = new UpstoxClient.MarketDataStreamerV3(stockUniverse, "full");
+  streamer.autoReconnect(false);
+  streamer.connect();
 
-    streamer.on("message", async (data) => {
-      try {
-        const parsed = JSON.parse(data.toString("utf-8"));
-        if (parsed.type !== "live_feed" || !parsed.feeds) return;
+  streamer.on("message", async (data) => {
+    try {
+      const parsed = JSON.parse(data.toString("utf-8"));
+      if (parsed.type !== "live_feed" || !parsed.feeds) return;
 
-        const upsertPayloads = [];
+      const upsertPayloads = [];
 
-        for (const symbol in parsed.feeds) {
-          const feed = parsed.feeds[symbol];
-          if (!feed?.fullFeed?.marketFF?.marketOHLC) continue;
+      for (const symbol in parsed.feeds) {
+        const feed = parsed.feeds[symbol];
+        if (!feed?.fullFeed?.marketFF?.marketOHLC) continue;
 
-          const ohlcDay = feed.fullFeed.marketFF.marketOHLC.ohlc.find(x => x.interval === "1d");
-          if (!ohlcDay) continue;
+        const ohlcDay = feed.fullFeed.marketFF.marketOHLC.ohlc.find(x => x.interval === "1d");
+        if (!ohlcDay) continue;
 
-          // Call scan functions imperatively
-          processNewHighScan(symbol, ohlcDay);
+        // Call scan functions imperatively
+        processNewHighScan(symbol, ohlcDay);
 
 
-          // Call extra scans similarly:
-          // const volumeSpikeResult = processVolumeSpikeScan(symbol, ohlcDay);
-          // if (volumeSpikeResult) { upsertPayloads.push(volumeSpikeResult); }
-        }
-      } catch (err) {
-        console.error("Error processing stream data:", err);
+        // Call extra scans similarly:
+        // const volumeSpikeResult = processVolumeSpikeScan(symbol, ohlcDay);
+        // if (volumeSpikeResult) { upsertPayloads.push(volumeSpikeResult); }
       }
-    });
-  }
-  catch { }
+    } catch (err) {
+      console.error("Error processing stream data:", err);
+    }
+  });
+  streamer.on('error', (err) => {
+    console.error('Upstox MarketDataStreamerV3 error:', err.message || err);
+    // Optionally notify or perform other recovery, like reconnect or alerting
+  });
 };
