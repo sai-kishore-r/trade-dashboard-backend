@@ -7,6 +7,9 @@ info:
 servers:
   - url: http://localhost:3015
     description: Local dev server
+  - url: https://trade-dashboard-backend-y4jp.onrender.com
+    description: QA server
+
 
 paths:
   /sync-52week-stats:
