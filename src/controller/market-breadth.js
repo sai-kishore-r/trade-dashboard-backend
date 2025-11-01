@@ -10,6 +10,7 @@ import dbWrapper from '../utils/dbWrapper.js'
 const router = express.Router();
 
 router.post("/sync-52week-marketbreath", async (req, res) => {
+  const { fullSync } = req.query;
   const stocks = niftymidsmall400;
 
   if (!Array.isArray(stocks) || stocks.length === 0) {
@@ -25,7 +26,7 @@ router.post("/sync-52week-marketbreath", async (req, res) => {
     const todayStr = moment().format("YYYY-MM-DD");
     let startDate;
 
-    if (latestSyncedDateStr) {
+    if (latestSyncedDateStr && (fullSync !== true && fullSync !== 'true')) {
       const latestSyncedDate = moment(latestSyncedDateStr);
       startDate = latestSyncedDate.add(1, "days").format("YYYY-MM-DD");
       if (moment(startDate).isAfter(todayStr)) {
