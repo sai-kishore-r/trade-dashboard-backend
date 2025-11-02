@@ -1,7 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 
 function setupWebSocket(server) {
-    const wss = new WebSocketServer({ port: 3015 });
+    const wss = new WebSocketServer({ server });
 
     wss.on('connection', (ws) => {
         console.log('New client connected.');

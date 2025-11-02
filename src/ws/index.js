@@ -115,7 +115,7 @@ export const connectWsUpstoxs = () => {
   streamer.on('error', (err) => {
     console.error('Upstox MarketDataStreamerV3 error:', err.message);
     if(err.message === "Unexpected server response: 401"){
-      // intiateAccessTokenReq();
+      intiateAccessTokenReq();
     }
   });
 };

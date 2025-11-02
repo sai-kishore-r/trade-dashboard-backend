@@ -13,7 +13,6 @@ import setupWebSocket from './ws/server.js'
 const app = express();
 
 await mongoConnectionInstance.connect();
-setupWebSocket();
 connectWsUpstoxs();
 
 app.use(cors());
