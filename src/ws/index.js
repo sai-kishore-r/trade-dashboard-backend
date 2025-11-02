@@ -122,14 +122,42 @@ export const connectWsUpstoxs = () => {
 
 
 const intiateAccessTokenReq = () => {
-  let apiInstance = new UpstoxClient.LoginApi();
-  let body = new UpstoxClient.IndieUserTokenRequest();
-  body.clientSecret = process.env.UPSTOXS_CLIENT_SECRET; // Replace with your actual client secret
-  apiInstance.initTokenRequestForIndieUser(body, process.env.UPSTOXS_CLIENT_ID, (error, data, response) => {
-    if (error) {
-      console.error(error.response.text);
-    } else {
-      console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+  try {
+    const clientId = process.env.UPSTOXS_CLIENT_ID;
+    const clientSecret = process.env.UPSTOXS_CLIENT_SECRET;
+
+    // Validate environment variables before calling the API
+    if (!clientId || !clientSecret) {
+      console.error('❌ Missing required environment variables:');
+      if (!clientId) console.error(' - UPSTOXS_CLIENT_ID');
+      if (!clientSecret) console.error(' - UPSTOXS_CLIENT_SECRET');
+      return;
     }
-  });
-}
+
+    const apiInstance = new UpstoxClient.LoginApi();
+    const body = new UpstoxClient.IndieUserTokenRequest();
+    body.clientSecret = clientSecret;
+
+    // Call the API
+    apiInstance.initTokenRequestForIndieUser(body, clientId, (error, data, response) => {
+      if (error) {
+        // Handle API errors gracefully
+        console.error('❌ Upstox API Error:');
+        if (error.response?.text) {
+          console.error('Response:', error.response.text);
+        } else {
+          console.error(error);
+        }
+      } else if (!data) {
+        console.error('❌ No data received from Upstox API.');
+      } else {
+        console.log('✅ API called successfully.');
+        console.log('Returned data:', JSON.stringify(data, null, 2));
+      }
+    });
+  } catch (err) {
+    // Handle unexpected runtime errors
+    console.error('❌ Unexpected error during token initiation:', err.message);
+  }
+};
+
