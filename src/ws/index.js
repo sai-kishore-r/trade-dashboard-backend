@@ -2,6 +2,8 @@ import UpstoxClient from "upstox-js-sdk";
 import dbWrapper from '../utils/dbWrapper.js';
 import niftymidsmall400float from '../index/niftymidsmall400.json' with { type: "json" };
 import niftylargeCap from '../index/niftylargecap.json' with { type: "json" };
+import dotenv from 'dotenv';
+dotenv.config();
 
 const scripts = niftymidsmall400float;
 const instruments = scripts.map((script) => script.instrument_key);
@@ -111,7 +113,23 @@ export const connectWsUpstoxs = () => {
     }
   });
   streamer.on('error', (err) => {
-    console.error('Upstox MarketDataStreamerV3 error:', err.message || err);
-    // Optionally notify or perform other recovery, like reconnect or alerting
+    console.error('Upstox MarketDataStreamerV3 error:', err.message);
+    if(err.message === "Unexpected server response: 401"){
+      intiateAccessTokenReq();
+    }
   });
 };
+
+
+const intiateAccessTokenReq = () => {
+  let apiInstance = new UpstoxClient.LoginApi();
+  let body = new UpstoxClient.IndieUserTokenRequest();
+  body.clientSecret = process.env.UPSTOXS_CLIENT_SECRET; // Replace with your actual client secret
+  apiInstance.initTokenRequestForIndieUser(body, process.env.UPSTOXS_CLIENT_ID, (error, data, response) => {
+    if (error) {
+      console.error(error.response.text);
+    } else {
+      console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+    }
+  });
+}

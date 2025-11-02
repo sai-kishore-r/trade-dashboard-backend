@@ -2,17 +2,18 @@ import cors from "cors";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-
 import marketBreadthRouter from "./controller/market-breadth.js";
 import statsRouter from "./controller/stats.js";
 import placeOrder from "./controller/place-order.js";
 import health from "./controller/health.js";
 import mongoConnectionInstance from "./database/mongo.js";
 import { connectWsUpstoxs } from "./ws/index.js";
+import setupWebSocket from './ws/server.js'
 
 const app = express();
 
 await mongoConnectionInstance.connect();
+setupWebSocket();
 connectWsUpstoxs();
 
 app.use(cors());
