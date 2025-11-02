@@ -1,8 +1,10 @@
+import dotenv from 'dotenv';
 import UpstoxClient from "upstox-js-sdk";
-import dbWrapper from '../utils/dbWrapper.js';
 import niftymidsmall400float from '../index/niftymidsmall400.json' with { type: "json" };
 import niftylargeCap from '../index/niftylargecap.json' with { type: "json" };
-import dotenv from 'dotenv';
+import { processNewHighScan } from "../utils/scans.js";
+import { intiateAccessTokenReq } from './utils.js';
+
 dotenv.config();
 
 const scripts = niftymidsmall400float;
@@ -10,79 +12,13 @@ const instruments = scripts.map((script) => script.instrument_key);
 const niftylargeCaps = niftylargeCap.map((script) => script.instrument_key);
 const stockUniverse = [...instruments, ...niftylargeCaps];
 
-let defaultClient = UpstoxClient.ApiClient.instance;
-const OAUTH2 = defaultClient.authentications["OAUTH2"];
-OAUTH2.accessToken = process.env.VITE_UPSTOXS_ACCESS_KEY;
+export const connectWsUpstoxs = (token) => {
+  let defaultClient = UpstoxClient.ApiClient.instance;
+  const OAUTH2 = defaultClient.authentications["OAUTH2"];
+  OAUTH2.accessToken = token || process.env.VITE_UPSTOXS_ACCESS_KEY;
 
-const MARKET_OPEN_HOUR = 9;
-const MARKET_OPEN_MINUTE = 15;
-const TRACKING_DURATION_MINUTES = 30;
-
-const isWithinFirst30Mins = (timestamp) => {
-  const tsDate = new Date(Number(timestamp));
-
-  // Build market open time for that same date
-  const marketOpen = new Date(tsDate);
-  marketOpen.setHours(MARKET_OPEN_HOUR, MARKET_OPEN_MINUTE, 0, 0);
-
-  const diffMinutes = (tsDate - marketOpen) / (1000 * 60);
-  return diffMinutes >= 0 && diffMinutes <= TRACKING_DURATION_MINUTES;
-};
-
-// Scan states
-const scanStates = {
-  newHigh: {
-    prevHighs: {},
-    newHighCounts: {},
-  },
-  // Additional scan states can go here
-};
-
-// Scan processor functions
-const processNewHighScan = async (symbol, ohlc) => {
-  const { prevHighs, newHighCounts } = scanStates.newHigh;
-  const currentHigh = ohlc.high;
-
-  if (!isWithinFirst30Mins(ohlc.ts)) {
-    // Optional: log or skip silently
-    return;
-  }
-
-  try {
-    if (!(symbol in prevHighs)) {
-      prevHighs[symbol] = currentHigh;
-      newHighCounts[symbol] = 0;
-      return; // no scan result this time
-    }
-
-    if (currentHigh > prevHighs[symbol]) {
-      prevHighs[symbol] = currentHigh;
-      newHighCounts[symbol] += 1;
-
-      await dbWrapper.upsertScans({
-        symbol,
-        scanType: "newHigh",
-        date: new Date().toISOString().slice(0, 10),
-        extraData: {
-          open: ohlc.open,
-          close: ohlc.close,
-          low: ohlc.low,
-          previousHigh: prevHighs[symbol],
-          newHigh: currentHigh,
-          newHighCount: newHighCounts[symbol],
-        },
-      });
-    }
-  } catch (error) {
-    console.error(`Error processing new high scan for ${symbol}:`, error);
-  }
-};
-
-
-// Additional scan functions can be declared similarly
-
-export const connectWsUpstoxs = () => {
   const streamer = new UpstoxClient.MarketDataStreamerV3(stockUniverse, "full");
+
   streamer.autoReconnect(false);
   streamer.connect();
 
@@ -91,8 +27,6 @@ export const connectWsUpstoxs = () => {
       const parsed = JSON.parse(data.toString("utf-8"));
       if (parsed.type !== "live_feed" || !parsed.feeds) return;
 
-      const upsertPayloads = [];
-
       for (const symbol in parsed.feeds) {
         const feed = parsed.feeds[symbol];
         if (!feed?.fullFeed?.marketFF?.marketOHLC) continue;
@@ -100,64 +34,19 @@ export const connectWsUpstoxs = () => {
         const ohlcDay = feed.fullFeed.marketFF.marketOHLC.ohlc.find(x => x.interval === "1d");
         if (!ohlcDay) continue;
 
-        // Call scan functions imperatively
         processNewHighScan(symbol, ohlcDay);
-
-
-        // Call extra scans similarly:
-        // const volumeSpikeResult = processVolumeSpikeScan(symbol, ohlcDay);
-        // if (volumeSpikeResult) { upsertPayloads.push(volumeSpikeResult); }
       }
     } catch (err) {
       console.error("Error processing stream data:", err);
     }
   });
+
   streamer.on('error', (err) => {
     console.error('Upstox MarketDataStreamerV3 error:', err.message);
-    if(err.message === "Unexpected server response: 401"){
-      intiateAccessTokenReq();
+    if (err.message === "Unexpected server response: 401") {
+      if(process.env.LOWER_ENV !== 'true')
+        intiateAccessTokenReq();
     }
   });
-};
-
-
-const intiateAccessTokenReq = () => {
-  try {
-    const clientId = process.env.UPSTOXS_CLIENT_ID;
-    const clientSecret = process.env.UPSTOXS_CLIENT_SECRET;
-
-    // Validate environment variables before calling the API
-    if (!clientId || !clientSecret) {
-      console.error('❌ Missing required environment variables:');
-      if (!clientId) console.error(' - UPSTOXS_CLIENT_ID');
-      if (!clientSecret) console.error(' - UPSTOXS_CLIENT_SECRET');
-      return;
-    }
-
-    const apiInstance = new UpstoxClient.LoginApi();
-    const body = new UpstoxClient.IndieUserTokenRequest();
-    body.clientSecret = clientSecret;
-
-    // Call the API
-    apiInstance.initTokenRequestForIndieUser(body, clientId, (error, data, response) => {
-      if (error) {
-        // Handle API errors gracefully
-        console.error('❌ Upstox API Error:');
-        if (error.response?.text) {
-          console.error('Response:', error.response.text);
-        } else {
-          console.error(error);
-        }
-      } else if (!data) {
-        console.error('❌ No data received from Upstox API.');
-      } else {
-        console.log('✅ API called successfully.');
-        console.log('Returned data:', JSON.stringify(data, null, 2));
-      }
-    });
-  } catch (err) {
-    // Handle unexpected runtime errors
-    console.error('❌ Unexpected error during token initiation:', err.message);
-  }
 };
 

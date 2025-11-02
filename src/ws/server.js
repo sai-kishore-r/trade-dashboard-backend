@@ -10,10 +10,9 @@ function setupWebSocket(server) {
 
         ws.on('message', (message) => {
             console.log('Received:', message);
-            const text = message.toString(); // Convert buffer → string
+            const text = message.toString();
             console.log('Received message:', text);
 
-            // Broadcast to all connected clients
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(`Server echo: ${message}`);

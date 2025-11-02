@@ -13,6 +13,7 @@ upstoxs.post("/upstoxs/notifier", (req, res) => {
     return res.status(400).json({ success: false, error: `Unsupported message_type: ${message_type}` });
   }
 
+  //TODO: Replace with logger.
   console.log("✅ Upstox Access Token Received:", { client_id, user_id, token_type, issued_at, expires_at });
 
   res.status(200).json({ success: true, message: "Access token received" });
