@@ -9,6 +9,7 @@ import health from "./controller/health.js";
 import mongoConnectionInstance from "./database/mongo.js";
 import { connectWsUpstoxs } from "./ws/index.js";
 import setupWebSocket from './ws/server.js'
+import upstoxs from "./controller/upstoxs.js";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(health);
 app.use(marketBreadthRouter);
 app.use(statsRouter);
 app.use(placeOrder);
+app.use(upstoxs);
 
 const swaggerDocument = YAML.load("./src/swagger.yaml");
 
