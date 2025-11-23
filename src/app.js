@@ -16,9 +16,7 @@ dotenv.config();
 const app = express();
 
 await mongoConnectionInstance.connect();
-if(process.env.LOWER_ENV === 'true'){
-    connectWsUpstoxs();
-}
+connectWsUpstoxs();
 
 app.use(cors());
 app.use(express.json());
