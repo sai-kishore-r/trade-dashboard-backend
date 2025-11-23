@@ -1,8 +1,15 @@
 import express from "express";
 import { connectWsUpstoxs } from "../ws/index.js";
+import { intiateAccessTokenReq } from "../ws/utils.js";
 import dbWrapper from "../utils/dbWrapper.js";
 
 const upstoxs = express.Router();
+
+upstoxs.get("/upstoxs/initiate-token", async (req, res) => {
+  intiateAccessTokenReq();
+
+  res.status(200).json({ success: true, message: "Token initiation triggered" });
+});
 
 upstoxs.post("/upstoxs/notifier", async (req, res) => {
   const { client_id, user_id, access_token, token_type, expires_at, issued_at, message_type } = req.body;
