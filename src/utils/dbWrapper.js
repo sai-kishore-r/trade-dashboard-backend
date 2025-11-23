@@ -133,9 +133,9 @@ async function upsertScans(data) {
 
 const getTokenFromDB = async () => {
   if (USE_MONGO) {
-    const tokenDocuments = await UpstoxsTokenMongo.findOne().sort({ date: -1 }).exec();
+    const tokenDocuments = await UpstoxsTokenMongo.findOne().sort({ issued_at: -1 }).exec();
 
-    return tokenDocuments?.accessToken
+    return tokenDocuments?.access_token
   } else {
     await sequelize.sync();
     const tokenData = await UpstoxTokenSQL.findOne({
@@ -147,10 +147,19 @@ const getTokenFromDB = async () => {
 
 const upsertTokenToDB = async (data) => {
   if (USE_MONGO) {
-    const query = data;
-    const update = { $set: data };
+    const mongoData = {
+      client_id: data.clientId,
+      user_id: data.userId,
+      access_token: data.accessToken,
+      issued_at: data.issuedAt,
+      expires_at: data.expiresAt,
+    };
+    // Upsert: find any document and update it, or create new if none exists.
+    // Using empty query {} to treat it as a singleton or update the first found.
+    const query = {};
+    const update = { $set: mongoData };
     const options = { upsert: true, new: true };
-    return await MarketBreadthMongo.findOneAndUpdate(query, update, options);
+    return await UpstoxsTokenMongo.findOneAndUpdate(query, update, options);
   } else {
     await sequelize.sync();
     const existingToken = await UpstoxTokenSQL.findOne({

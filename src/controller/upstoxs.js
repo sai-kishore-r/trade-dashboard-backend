@@ -26,11 +26,11 @@ upstoxs.post("/upstoxs/notifier", async (req, res) => {
       issuedAt: issued_at,
       expiresAt: expires_at
     });
-    connectWsUpstoxs(access_token);
   }
   catch (err) {
     console.log('error upsertTokenToDB', err)
   }
+  connectWsUpstoxs(access_token);
 
   res.status(200).json({ success: true, message: "Access token received" });
 });

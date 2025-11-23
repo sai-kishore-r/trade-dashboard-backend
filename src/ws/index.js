@@ -28,6 +28,10 @@ export const connectWsUpstoxs = async (token) => {
   streamer.autoReconnect(false);
   streamer.connect();
 
+  streamer.on("open", () => {
+    console.log("✅ WebSocket connected successfully.");
+  });
+
   streamer.on("message", async (data) => {
     try {
       const parsed = JSON.parse(data.toString("utf-8"));
