@@ -73,6 +73,33 @@ const genProcessNewHighScan = () => {
     }
 };
 
+const genProcessBollarBOScan = () => {
+    const processedSymbols = new Set();
+
+    return async (symbol, ohlc, currentTs) => {
+        if (processedSymbols.has(symbol)) return;
+
+        const open = ohlc.open;
+        const close = ohlc.close;
+        const volume = ohlc.vol;
+
+        if (close - open >= 50 && volume >= 100000) {
+            processedSymbols.add(symbol);
+            await dbWrapper.upsertScans({
+                symbol,
+                scanType: "bollarBO",
+                date: new Date().toISOString().slice(0, 10),
+                extraData: {
+                    open,
+                    close,
+                    volume,
+                    currentTs,
+                }
+            });
+        }
+    };
+};
+
 let statsCache = null;
 let isFetching = false;
 
@@ -131,10 +158,14 @@ const genProcess4PercentBOScan = () => {
     };
 };
 
+//TODO: Introduce a SLTB BD scan.
+
 const processNewHighScan = genProcessNewHighScan();
 const process4PercentBOScan = genProcess4PercentBOScan();
+const processBollarBOScan = genProcessBollarBOScan();
 
 export {
     processNewHighScan,
     process4PercentBOScan,
+    processBollarBOScan,
 };

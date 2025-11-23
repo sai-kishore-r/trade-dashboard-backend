@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import UpstoxClient from "upstox-js-sdk";
 import niftymidsmall400float from '../index/niftymidsmall400.json' with { type: "json" };
 import niftylargeCap from '../index/niftylargecap.json' with { type: "json" };
-import { processNewHighScan, process4PercentBOScan } from "../utils/scans.js";
+import { processNewHighScan, process4PercentBOScan, processBollarBOScan } from "../utils/scans.js";
 import { intiateAccessTokenReq } from './utils.js';
 import dbWrapper from '../utils/dbWrapper.js';
 
@@ -46,6 +46,7 @@ export const connectWsUpstoxs = async (token) => {
 
         processNewHighScan(symbol, ohlcDay, parsed.currentTs);
         process4PercentBOScan(symbol, ohlcDay, parsed.currentTs);
+        processBollarBOScan(symbol, ohlcDay, parsed.currentTs);
       }
     } catch (err) {
       console.error("Error processing stream data:", err);
