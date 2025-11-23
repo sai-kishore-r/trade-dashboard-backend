@@ -1,5 +1,6 @@
 import express from "express";
 import { connectWsUpstoxs } from "../ws/index.js";
+import dbWrapper from "../utils/dbWrapper.js";
 
 const upstoxs = express.Router();
 
@@ -17,11 +18,17 @@ upstoxs.post("/upstoxs/notifier", async (req, res) => {
   //TODO: Replace with logger.
   console.log("✅ Upstox Access Token Received:", { client_id, user_id, token_type, issued_at, expires_at });
 
-  try{
-    // await dbWrapper.upsertTokenToDB({ client_id, user_id, access_token, issued_at, expires_at });
+  try {
+    await dbWrapper.upsertTokenToDB({
+      clientId: client_id,
+      userId: user_id,
+      accessToken: access_token,
+      issuedAt: issued_at,
+      expiresAt: expires_at
+    });
     connectWsUpstoxs(access_token);
   }
-  catch(err){
+  catch (err) {
     console.log('error upsertTokenToDB', err)
   }
 

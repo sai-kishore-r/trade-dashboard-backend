@@ -21,6 +21,8 @@ export const connectWsUpstoxs = async (token) => {
     ? process.env.VITE_UPSTOXS_ACCESS_KEY
     : await dbWrapper.getTokenFromDB();
 
+  console.log('🔑 Token retrieved for WebSocket connection:', OAUTH2.accessToken);
+
   const streamer = new UpstoxClient.MarketDataStreamerV3(stockUniverse, "full");
 
   streamer.autoReconnect(false);
@@ -48,7 +50,8 @@ export const connectWsUpstoxs = async (token) => {
   streamer.on('error', (err) => {
     console.error('Upstox MarketDataStreamerV3 error:', err.message);
     if (err.message === "Unexpected server response: 401") {
-      if(process.env.LOWER_ENV !== 'true')
+      console.log('⚠️ Token expired (401). Initiating new access token request...');
+      if (process.env.LOWER_ENV !== 'true')
         intiateAccessTokenReq();
     }
   });

@@ -4,6 +4,7 @@ import UpstoxClient from "upstox-js-sdk";
 dotenv.config();
 
 export const intiateAccessTokenReq = () => {
+    console.log('🔄 Initiating access token request to Upstox...');
     try {
         const clientId = process.env.UPSTOXS_CLIENT_ID;
         const clientSecret = process.env.UPSTOXS_CLIENT_SECRET;
