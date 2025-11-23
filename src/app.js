@@ -10,11 +10,15 @@ import mongoConnectionInstance from "./database/mongo.js";
 import { connectWsUpstoxs } from "./ws/index.js";
 import setupWebSocket from './ws/server.js'
 import upstoxs from "./controller/upstoxs.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
 await mongoConnectionInstance.connect();
-connectWsUpstoxs();
+if(process.env.LOWER_ENV === 'true'){
+    connectWsUpstoxs();
+}
 
 app.use(cors());
 app.use(express.json());

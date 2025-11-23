@@ -13,21 +13,30 @@ const genProcessNewHighScan = () => {
     };
 
     const isWithinFirst30Mins = (timestamp) => {
-        const tsDate = new Date(Number(timestamp));
+        const tsDate = new Date(Number(timestamp)); // Local time automatically
 
-        const marketOpen = new Date(tsDate);
-        marketOpen.setHours(MARKET_OPEN_HOUR, MARKET_OPEN_MINUTE, 0, 0);
+        // Market open for that day IN LOCAL TIME
+        const marketOpen = new Date(
+            tsDate.getFullYear(),
+            tsDate.getMonth(),
+            tsDate.getDate(),
+            MARKET_OPEN_HOUR,
+            MARKET_OPEN_MINUTE,
+            0,
+            0
+        );
 
         const diffMinutes = (tsDate - marketOpen) / (1000 * 60);
+
         return diffMinutes >= 0 && diffMinutes <= TRACKING_DURATION_MINUTES;
     };
 
 
-    return async (symbol, ohlc) => {
+    return async (symbol, ohlc, currentTs) => {
         const { prevHighs, newHighCounts } = scanStates.newHigh;
         const currentHigh = ohlc.high;
 
-        if (!isWithinFirst30Mins(ohlc.ts)) {
+        if (!isWithinFirst30Mins(currentTs)) {
             //TODO: Terminate the socket connect and intiate via cron or on demand api way.
             return;
         }
@@ -36,7 +45,8 @@ const genProcessNewHighScan = () => {
             if (!(symbol in prevHighs)) {
                 prevHighs[symbol] = currentHigh;
                 newHighCounts[symbol] = 0;
-                return; // no scan result this time
+
+                return;
             }
 
             if (currentHigh > prevHighs[symbol]) {

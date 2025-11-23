@@ -4,6 +4,7 @@ import niftymidsmall400float from '../index/niftymidsmall400.json' with { type: 
 import niftylargeCap from '../index/niftylargecap.json' with { type: "json" };
 import { processNewHighScan } from "../utils/scans.js";
 import { intiateAccessTokenReq } from './utils.js';
+import dbWrapper from '../utils/dbWrapper.js';
 
 dotenv.config();
 
@@ -12,10 +13,13 @@ const instruments = scripts.map((script) => script.instrument_key);
 const niftylargeCaps = niftylargeCap.map((script) => script.instrument_key);
 const stockUniverse = [...instruments, ...niftylargeCaps];
 
-export const connectWsUpstoxs = (token) => {
+export const connectWsUpstoxs = async (token) => {
   let defaultClient = UpstoxClient.ApiClient.instance;
   const OAUTH2 = defaultClient.authentications["OAUTH2"];
-  OAUTH2.accessToken = token || process.env.VITE_UPSTOXS_ACCESS_KEY;
+
+  OAUTH2.accessToken = process.env.LOWER_ENV === 'true'
+    ? process.env.VITE_UPSTOXS_ACCESS_KEY
+    : await dbWrapper.getTokenFromDB();
 
   const streamer = new UpstoxClient.MarketDataStreamerV3(stockUniverse, "full");
 
@@ -34,7 +38,7 @@ export const connectWsUpstoxs = (token) => {
         const ohlcDay = feed.fullFeed.marketFF.marketOHLC.ohlc.find(x => x.interval === "1d");
         if (!ohlcDay) continue;
 
-        processNewHighScan(symbol, ohlcDay);
+        processNewHighScan(symbol, ohlcDay, parsed.currentTs);
       }
     } catch (err) {
       console.error("Error processing stream data:", err);
@@ -48,5 +52,7 @@ export const connectWsUpstoxs = (token) => {
         intiateAccessTokenReq();
     }
   });
+
+  streamer.on("close", (data) => console.log("Connection closed.", JSON.stringify(data)));
 };
 

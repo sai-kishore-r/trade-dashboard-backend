@@ -6,6 +6,8 @@ import MarketBreadthSQL from '../schema/RDB/marketBreath.js';
 import MarketBreadthMongo from '../schema/Mongo/marketBreadth.js';
 import ScansSql from '../schema/RDB/scans.js';
 import ScansMongo from '../schema/Mongo/scans.js';
+import UpstoxsTokenMongo from '../schema/Mongo/upstoxsToken.js';
+import UpstoxTokenSQL from '../schema/RDB/upstoxsToken.js';
 import { sequelize } from '../database/index.js';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -129,7 +131,38 @@ async function upsertScans(data) {
   }
 }
 
-// Similarly for other operations...
+const getTokenFromDB = async () => {
+  if (USE_MONGO) {
+    const tokenDocuments = await UpstoxsTokenMongo.findOne().sort({ date: -1 }).exec();
+
+    return tokenDocuments?.accessToken
+  } else {
+    await sequelize.sync();
+    const tokenData = await UpstoxTokenSQL.findOne({
+      order: [["issuedAt", "DESC"]],
+    });
+    return tokenData?.accessToken;
+  }
+};
+
+const upsertTokenToDB = async (data) => {
+  if (USE_MONGO) {
+    const query = data;
+    const update = { $set: data };
+    const options = { upsert: true, new: true };
+    return await MarketBreadthMongo.findOneAndUpdate(query, update, options);
+  } else {
+    await sequelize.sync();
+    const existingToken = await UpstoxTokenSQL.findOne({
+      order: [["issuedAt", "DESC"]],
+    });
+
+    if (existingToken) {
+      return await existingToken.update(data);
+    }
+    return await UpstoxTokenSQL.create(data);
+  }
+};
 
 export default {
   upsertInstrument52WeekStats,
@@ -137,4 +170,6 @@ export default {
   upsertMarketBreadth,
   getAllMarketBreadth,
   upsertScans,
+  getTokenFromDB,
+  upsertTokenToDB,
 };
