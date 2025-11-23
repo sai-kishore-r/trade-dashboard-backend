@@ -73,8 +73,68 @@ const genProcessNewHighScan = () => {
     }
 };
 
+let statsCache = null;
+let isFetching = false;
+
+const get52WeekStatsMap = async () => {
+    if (statsCache) return statsCache;
+    if (isFetching) return null;
+    isFetching = true;
+    try {
+        const stats = await dbWrapper.getAllInstrument52WeekStats();
+        statsCache = {};
+        stats.forEach(doc => {
+            const key = doc.instrumentKey;
+            const lastPrice = doc.lastPrice;
+            if (key && lastPrice) {
+                statsCache[key] = Number(lastPrice.toString());
+            }
+        });
+    } catch (err) {
+        console.error("Failed to fetch 52w stats", err);
+    } finally {
+        isFetching = false;
+    }
+    return statsCache;
+};
+
+const genProcess4PercentBOScan = () => {
+    const processedSymbols = new Set();
+
+    return async (symbol, ohlc, currentTs) => {
+        if (processedSymbols.has(symbol)) return;
+
+        const stats = await get52WeekStatsMap();
+        if (!stats) return;
+
+        const prevClose = stats[symbol];
+        if (!prevClose) return;
+
+        const currentPrice = ohlc.close;
+        const pctChange = ((currentPrice - prevClose) / prevClose) * 100;
+
+        if (Math.abs(pctChange) >= 4) {
+            processedSymbols.add(symbol);
+            await dbWrapper.upsertScans({
+                symbol,
+                scanType: pctChange >= 4 ? "4PercentBO" : "4PercentBD",
+                date: new Date().toISOString().slice(0, 10),
+                extraData: {
+                    prevClose,
+                    currentPrice,
+                    pctChange,
+                    currentTs,
+                    isBO: pctChange >= 4,
+                }
+            });
+        }
+    };
+};
+
 const processNewHighScan = genProcessNewHighScan();
+const process4PercentBOScan = genProcess4PercentBOScan();
 
 export {
     processNewHighScan,
+    process4PercentBOScan,
 };
