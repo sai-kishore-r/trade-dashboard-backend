@@ -62,6 +62,11 @@ export const connectWsUpstoxs = async (token) => {
     }
   });
 
-  streamer.on("close", (data) => console.log("Connection closed.", JSON.stringify(data)));
+  streamer.on("close", (data) => {
+    console.log("Connection closed.", data);
+
+    if (process.env.LOWER_ENV !== 'true')
+      intiateAccessTokenReq();
+  });
 };
 
