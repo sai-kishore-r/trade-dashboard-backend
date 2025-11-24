@@ -13,6 +13,10 @@ const Scan = sequelize.define(
             type: DataTypes.STRING(100),
             allowNull: false, // e.g., "NSE_EQ|INE585B01010"
         },
+        tradingSymbol: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
         scanType: {
             type: DataTypes.STRING(50),
             allowNull: false, // e.g., "new_high", "breakout", "volume_spike"

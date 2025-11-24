@@ -65,6 +65,7 @@ const genProcessNewHighScan = () => {
                         newHigh: currentHigh,
                         newHighCount: newHighCounts[symbol],
                     },
+                    tradingSymbol: (await get52WeekStatsMap())?.[symbol]?.tradingSymbol,
                 });
             }
         } catch (error) {
@@ -94,7 +95,8 @@ const genProcessBollarBOScan = () => {
                     close,
                     volume,
                     currentTs,
-                }
+                },
+                tradingSymbol: (await get52WeekStatsMap())?.[symbol]?.tradingSymbol,
             });
         }
     };
@@ -113,8 +115,9 @@ const get52WeekStatsMap = async () => {
         stats.forEach(doc => {
             const key = doc.instrumentKey;
             const lastPrice = doc.lastPrice;
+            const tradingSymbol = doc.tradingsymbol;
             if (key && lastPrice) {
-                statsCache[key] = Number(lastPrice.toString());
+                statsCache[key] = { lastPrice: Number(lastPrice.toString()), tradingSymbol };
             }
         });
     } catch (err) {
@@ -134,7 +137,10 @@ const genProcess4PercentBOScan = () => {
         const stats = await get52WeekStatsMap();
         if (!stats) return;
 
-        const prevClose = stats[symbol];
+        const statsData = stats[symbol];
+        if (!statsData) return;
+
+        const prevClose = statsData.lastPrice;
         if (!prevClose) return;
 
         const currentPrice = ohlc.close;
@@ -152,7 +158,8 @@ const genProcess4PercentBOScan = () => {
                     pctChange,
                     currentTs,
                     isBO: pctChange >= 4,
-                }
+                },
+                tradingSymbol: statsData.tradingSymbol,
             });
         }
     };
