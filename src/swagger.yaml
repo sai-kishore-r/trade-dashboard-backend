@@ -149,6 +149,48 @@ paths:
         '500':
           description: Server error
 
+  /scans:
+    get:
+      summary: Get list of scans
+      description: Retrieve scan records filtered by scan type and date.
+      parameters:
+        - in: query
+          name: scanType
+          schema:
+            type: string
+          description: Filter by scan type (e.g., newHigh, bollarBO). Defaults to 'all'.
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+          description: Filter by date (YYYY-MM-DD). Defaults to current date.
+      responses:
+        '200':
+          description: Successfully retrieved scans
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Scan'
+                  meta:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                      scanType:
+                        type: string
+                      count:
+                        type: integer
+        '500':
+          description: Server error fetching scans
+
 components:
   schemas:
     Instrument52WeekStats:
@@ -210,3 +252,31 @@ components:
         down20Pct5d:
           type: integer
           example: 40
+
+    Scan:
+      type: object
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+          example: NSE_EQ|RELIANCE
+        tradingSymbol:
+          type: string
+          example: RELIANCE
+        scanType:
+          type: string
+          example: newHigh
+        date:
+          type: string
+          format: date
+          example: '2023-10-27'
+        extraData:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

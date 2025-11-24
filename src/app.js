@@ -10,6 +10,7 @@ import mongoConnectionInstance from "./database/mongo.js";
 import { connectWsUpstoxs } from "./ws/index.js";
 import setupWebSocket from './ws/server.js'
 import upstoxs from "./controller/upstoxs.js";
+import scanRouter from "./controller/scan.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(marketBreadthRouter);
 app.use(statsRouter);
 app.use(placeOrder);
 app.use(upstoxs);
+app.use("/scans", scanRouter);
 
 const swaggerDocument = YAML.load("./src/swagger.yaml");
 

@@ -201,6 +201,28 @@ const upsertTokenToDB = async (data) => {
   }
 };
 
+const getScans = async (scanType, date) => {
+  try {
+    const query = { date };
+    if (scanType && scanType !== 'all') {
+      query.scanType = scanType;
+    }
+
+    if (USE_MONGO) {
+      return await ScansMongo.find(query).exec();
+    } else {
+      await sequelize.sync();
+      return await ScansSql.findAll({
+        where: query,
+        order: [['createdAt', 'DESC']],
+      });
+    }
+  } catch (error) {
+    console.error('Error in getScans:', error);
+    return [];
+  }
+};
+
 export default {
   upsertInstrument52WeekStats,
   getAllInstrument52WeekStats,
@@ -209,4 +231,5 @@ export default {
   upsertScans,
   getTokenFromDB,
   upsertTokenToDB,
+  getScans,
 };
