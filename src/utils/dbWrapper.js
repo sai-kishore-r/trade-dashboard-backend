@@ -126,14 +126,24 @@ async function upsertScans(data) {
       if (Array.isArray(data)) {
         return await Promise.all(
           data.map(async (doc) => {
-            const query = { symbol: doc.symbol, date: doc.date, scanType: doc.scanType };
+            const query = {
+              symbol: doc.symbol,
+              date: doc.date,
+              scanType: doc.scanType,
+              tradingSymbol: doc.tradingSymbol,
+            };
             const update = { $set: doc };
             const options = { upsert: true, new: true };
             return await ScansMongo.findOneAndUpdate(query, update, options);
           })
         );
       } else {
-        const query = { symbol: data.symbol, date: data.date, scanType: data.scanType };
+        const query = {
+          symbol: doc.symbol,
+          date: doc.date,
+          scanType: doc.scanType,
+          tradingSymbol: doc.tradingSymbol,
+        };
         const update = { $set: data };
         const options = { upsert: true, new: true };
         return await ScansMongo.findOneAndUpdate(query, update, options);
