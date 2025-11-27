@@ -88,7 +88,7 @@ const genProcessBollarBOScan = () => {
             processedSymbols.add(symbol);
             await dbWrapper.upsertScans({
                 symbol,
-                scanType: "bollarBO",
+                scanType: "dollarBO",
                 date: new Date().toISOString().slice(0, 10),
                 extraData: {
                     open,

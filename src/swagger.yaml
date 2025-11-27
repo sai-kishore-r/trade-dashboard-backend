@@ -158,7 +158,7 @@ paths:
           name: scanType
           schema:
             type: string
-          description: Filter by scan type (e.g., newHigh, bollarBO). Defaults to 'all'.
+          description: Filter by scan type (e.g., newHigh, DollarBO). Defaults to 'all'.
         - in: query
           name: date
           schema:
