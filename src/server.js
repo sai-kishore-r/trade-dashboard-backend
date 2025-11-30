@@ -1,16 +1,20 @@
 import http from "http";
 import app from "./app.js";
 import setupWebSocket from "./ws/server.js";
+import setupCronJobs from "./cron/index.js";
+import { intiateAccessTokenReq } from "./ws/utils.js";
 
 const PORT = 3015;
 
 const server = http.createServer(app);
 
 setupWebSocket(server);
+setupCronJobs();
 
 server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`✅ User routes should be available at /api/users`);
+  intiateAccessTokenReq();
 });
 
 const gracefulShutdown = (signal) => {

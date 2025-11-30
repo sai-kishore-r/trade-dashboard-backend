@@ -61,16 +61,16 @@ export const connectWsUpstoxs = async (token) => {
     console.error('Upstox MarketDataStreamerV3 error:', err.message);
     if (err.message === "Unexpected server response: 401") {
       console.log('⚠️ Token expired (401). Please re-login to Upstox.');
-      // if (process.env.LOWER_ENV !== 'true')
-      //   intiateAccessTokenReq(); // This requires args, disabling for now
+      if (process.env.LOWER_ENV !== 'true')
+        intiateAccessTokenReq(); // This requires args, disabling for now
     }
   });
 
   streamer.on("close", (data) => {
     console.log("Connection closed.", data);
 
-    // if (process.env.LOWER_ENV !== 'true')
-    //   intiateAccessTokenReq(); // This requires args, disabling for now
+    if (process.env.LOWER_ENV !== 'true')
+      intiateAccessTokenReq(); // This requires args, disabling for now
   });
 };
 
