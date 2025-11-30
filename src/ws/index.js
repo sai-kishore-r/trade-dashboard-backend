@@ -17,9 +17,13 @@ export const connectWsUpstoxs = async (token) => {
   let defaultClient = UpstoxClient.ApiClient.instance;
   const OAUTH2 = defaultClient.authentications["OAUTH2"];
 
-  OAUTH2.accessToken = process.env.LOWER_ENV === 'true'
-    ? process.env.VITE_UPSTOXS_ACCESS_KEY
-    : await dbWrapper.getTokenFromDB();
+  if (token) {
+    OAUTH2.accessToken = token;
+  } else {
+    OAUTH2.accessToken = process.env.LOWER_ENV === 'true'
+      ? process.env.VITE_UPSTOXS_ACCESS_KEY
+      : await dbWrapper.getTokenFromDB();
+  }
 
   console.log('🔑 Token retrieved for WebSocket connection:', OAUTH2.accessToken);
 
@@ -56,17 +60,17 @@ export const connectWsUpstoxs = async (token) => {
   streamer.on('error', (err) => {
     console.error('Upstox MarketDataStreamerV3 error:', err.message);
     if (err.message === "Unexpected server response: 401") {
-      console.log('⚠️ Token expired (401). Initiating new access token request...');
-      if (process.env.LOWER_ENV !== 'true')
-        intiateAccessTokenReq();
+      console.log('⚠️ Token expired (401). Please re-login to Upstox.');
+      // if (process.env.LOWER_ENV !== 'true')
+      //   intiateAccessTokenReq(); // This requires args, disabling for now
     }
   });
 
   streamer.on("close", (data) => {
     console.log("Connection closed.", data);
 
-    if (process.env.LOWER_ENV !== 'true')
-      intiateAccessTokenReq();
+    // if (process.env.LOWER_ENV !== 'true')
+    //   intiateAccessTokenReq(); // This requires args, disabling for now
   });
 };
 

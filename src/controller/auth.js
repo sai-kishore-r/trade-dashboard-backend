@@ -1,28 +1,38 @@
-import express from 'express';
 import axios from 'axios';
 
-const router = express.Router();
+const upstoxAuth = async (req, res) => {
+  const { code } = req.body;
+  const apiKey = process.env.UPSTOX_API_KEY;
+  const apiSecret = process.env.UPSTOX_API_SECRET;
+  const redirectUri = process.env.UPSTOX_REDIRECT_URI; // e.g., http://localhost:5173/redirect
 
-router.post('/upstox/token', async (req, res) => {
-  const { code, redirectUri } = req.body;
-  const clientId = process.env.UPSTOX_CLIENT_ID;
-  const clientSecret = process.env.UPSTOX_CLIENT_SECRET;
+  if (!code) {
+    return res.status(400).json({ error: 'Authorization code is missing' });
+  }
 
   try {
     const params = new URLSearchParams();
-    params.append('grant_type', 'authorization_code');
     params.append('code', code);
+    params.append('client_id', apiKey);
+    params.append('client_secret', apiSecret);
     params.append('redirect_uri', redirectUri);
-    params.append('client_id', clientId);
-    params.append('client_secret', clientSecret);
+    params.append('grant_type', 'authorization_code');
 
-    const response = await axios.post('https://api.upstox.com/index/oauth/token', params, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const response = await axios.post('https://api.upstox.com/v2/login/authorization/token', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      }
     });
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-export default router;
+    const { access_token } = response.data;
+
+    // Return the token to the frontend
+    res.json({ access_token });
+  } catch (error) {
+    console.error('Error exchanging code for token:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to authenticate with Upstox' });
+  }
+};
+
+export { upstoxAuth };

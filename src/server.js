@@ -10,6 +10,7 @@ setupWebSocket(server);
 
 server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ User routes should be available at /api/users`);
 });
 
 const gracefulShutdown = (signal) => {

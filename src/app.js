@@ -11,6 +11,8 @@ import { connectWsUpstoxs } from "./ws/index.js";
 import setupWebSocket from './ws/server.js'
 import upstoxs from "./controller/upstoxs.js";
 import scanRouter from "./controller/scan.js";
+import { upstoxAuth } from "./controller/auth.js";
+import userController from "./controller/userController.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use(statsRouter);
 app.use(placeOrder);
 app.use(upstoxs);
 app.use("/scans", scanRouter);
+app.use("/api/users", userController);
+app.post('/auth/callback', upstoxAuth);
 
 const swaggerDocument = YAML.load("./src/swagger.yaml");
 

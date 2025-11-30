@@ -10,8 +10,12 @@ const UpstoxToken = sequelize.define("UpstoxToken", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  accessToken: {
+  upstoxUserId: {
     type: DataTypes.STRING,
+    allowNull: false,
+  },
+  accessToken: {
+    type: DataTypes.TEXT,
     allowNull: false,
   },
   expiresAt: {
@@ -23,7 +27,7 @@ const UpstoxToken = sequelize.define("UpstoxToken", {
     allowNull: false,
   },
 }, {
-  tableName: "upstoxs_token", 
+  tableName: "upstoxs_token",
   timestamps: false,
 });
 

@@ -8,6 +8,10 @@ import ScansSql from '../schema/RDB/scans.js';
 import ScansMongo from '../schema/Mongo/scans.js';
 import UpstoxsTokenMongo from '../schema/Mongo/upstoxsToken.js';
 import UpstoxTokenSQL from '../schema/RDB/upstoxsToken.js';
+import UpstoxConfigSQL from '../schema/RDB/upstoxConfig.js';
+import UpstoxConfigMongo from '../schema/Mongo/upstoxConfig.js';
+import UserSQL from '../schema/RDB/user.js';
+import UserMongo from '../schema/Mongo/user.js';
 import { sequelize } from '../database/index.js';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -179,32 +183,52 @@ const getTokenFromDB = async () => {
   }
 };
 
+const getUserToken = async (clientId) => {
+  try {
+    if (USE_MONGO) {
+      return await UpstoxsTokenMongo.findOne({ client_id: clientId }).sort({ issued_at: -1 }).exec();
+    } else {
+      await sequelize.sync();
+      return await UpstoxTokenSQL.findOne({
+        where: { clientId },
+        order: [["issuedAt", "DESC"]],
+      });
+    }
+  } catch (error) {
+    console.error('Error in getUserToken:', error);
+    return null;
+  }
+};
+
 const upsertTokenToDB = async (data) => {
   try {
     if (USE_MONGO) {
       const mongoData = {
         client_id: data.clientId,
-        user_id: data.userId,
+        userId: data.userId,
+        upstoxUserId: data.upstoxUserId,
         access_token: data.accessToken,
         issued_at: data.issuedAt,
         expires_at: data.expiresAt,
       };
       // Upsert: find any document and update it, or create new if none exists.
       // Using empty query {} to treat it as a singleton or update the first found.
-      const query = {};
+      const query = { userId: data.userId };
       const update = { $set: mongoData };
       const options = { upsert: true, new: true };
       return await UpstoxsTokenMongo.findOneAndUpdate(query, update, options);
     } else {
       await sequelize.sync();
+      const userIdStr = String(data.userId);
       const existingToken = await UpstoxTokenSQL.findOne({
+        where: { userId: userIdStr },
         order: [["issuedAt", "DESC"]],
       });
 
       if (existingToken) {
-        return await existingToken.update(data);
+        return await existingToken.update({ ...data, userId: userIdStr });
       }
-      return await UpstoxTokenSQL.create(data);
+      return await UpstoxTokenSQL.create({ ...data, userId: userIdStr });
     }
   } catch (error) {
     console.error('Error in upsertTokenToDB:', error);
@@ -233,6 +257,118 @@ const getScans = async (scanType, date) => {
   }
 };
 
+const upsertUpstoxConfig = async (data) => {
+  try {
+    if (USE_MONGO) {
+      const query = { userId: data.userId };
+      const update = { $set: data };
+      const options = { upsert: true, new: true };
+      return await UpstoxConfigMongo.findOneAndUpdate(query, update, options);
+    } else {
+      await sequelize.sync();
+      const existingConfig = await UpstoxConfigSQL.findOne({
+        where: { userId: data.userId }
+      });
+
+      if (existingConfig) {
+        return await existingConfig.update(data);
+      }
+      return await UpstoxConfigSQL.create(data);
+    }
+  } catch (error) {
+    console.error('Error in upsertUpstoxConfig:', error);
+    throw error;
+  }
+};
+
+const getUpstoxConfigs = async (userId) => {
+  try {
+    if (USE_MONGO) {
+      return await UpstoxConfigMongo.find({ userId }).sort({ createdAt: -1 }).exec();
+    } else {
+      await sequelize.sync();
+      return await UpstoxConfigSQL.findAll({
+        where: { userId },
+        order: [['createdAt', 'DESC']],
+      });
+    }
+  } catch (error) {
+    console.error('Error in getUpstoxConfigs:', error);
+    return [];
+  }
+};
+
+const getUpstoxConfigById = async (id) => {
+  try {
+    if (USE_MONGO) {
+      return await UpstoxConfigMongo.findById(id).exec();
+    } else {
+      await sequelize.sync();
+      return await UpstoxConfigSQL.findByPk(id);
+    }
+  } catch (error) {
+    console.error('Error in getUpstoxConfigById:', error);
+    return null;
+  }
+};
+
+const getUpstoxConfigByName = async (name) => {
+  try {
+    if (USE_MONGO) {
+      return await UpstoxConfigMongo.findOne({ name }).exec();
+    } else {
+      await sequelize.sync();
+      return await UpstoxConfigSQL.findOne({ where: { name } });
+    }
+  } catch (error) {
+    console.error('Error in getUpstoxConfigByName:', error);
+    return null;
+  }
+};
+
+const createUser = async (data) => {
+  try {
+    if (USE_MONGO) {
+      const user = new UserMongo(data);
+      return await user.save();
+    } else {
+      await sequelize.sync();
+      return await UserSQL.create(data);
+    }
+  } catch (error) {
+    console.error('Error in createUser:', error);
+    throw error;
+  }
+};
+
+const getUserByEmail = async (email) => {
+  try {
+    if (USE_MONGO) {
+      return await UserMongo.findOne({ email }).exec();
+    } else {
+      await sequelize.sync();
+      return await UserSQL.findOne({ where: { email } });
+    }
+  } catch (error) {
+    console.error('Error in getUserByEmail:', error);
+    return null;
+  }
+};
+
+const getUserById = async (id) => {
+  try {
+    if (USE_MONGO) {
+      return await UserMongo.findById(id).exec();
+    } else {
+      await sequelize.sync();
+      return await UserSQL.findByPk(id);
+    }
+  } catch (error) {
+    console.error('Error in getUserById:', error);
+    return null;
+  }
+};
+
 export default {
   upsertInstrument52WeekStats,
   getAllInstrument52WeekStats,
@@ -242,4 +378,12 @@ export default {
   getTokenFromDB,
   upsertTokenToDB,
   getScans,
+  upsertUpstoxConfig,
+  getUpstoxConfigs,
+  getUpstoxConfigById,
+  getUpstoxConfigByName,
+  createUser,
+  getUserByEmail,
+  getUserById,
+  getUserToken,
 };
