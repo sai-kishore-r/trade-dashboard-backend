@@ -149,7 +149,11 @@ upstoxs.get("/upstoxs/redirect", async (req, res) => {
 
     connectWsUpstoxs(data.access_token);
 
-    res.redirect('http://localhost:5173/');
+    if (process.env.LOWER_ENV === 'true') {
+      res.redirect('http://localhost:5173/');
+    } else {
+      res.redirect(process.env.VITE_FRONTEND_REDIRECT_URL);
+    }
 
   } catch (error) {
     console.error('Token exchange error:', error.response?.data || error.message);
