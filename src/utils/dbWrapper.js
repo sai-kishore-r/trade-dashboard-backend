@@ -12,6 +12,8 @@ import UpstoxConfigSQL from '../schema/RDB/upstoxConfig.js';
 import UpstoxConfigMongo from '../schema/Mongo/upstoxConfig.js';
 import UserSQL from '../schema/RDB/user.js';
 import UserMongo from '../schema/Mongo/user.js';
+import ChartLayoutSQL from '../schema/RDB/chartLayout.js';
+import ChartLayoutMongo from '../schema/Mongo/chartLayout.js';
 import { sequelize } from '../database/index.js';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -370,6 +372,78 @@ const getUserById = async (id) => {
   }
 };
 
+const saveChartLayout = async (data) => {
+  try {
+    if (USE_MONGO) {
+      const query = { name: data.name, user_id: data.user_id, client_id: data.client_id };
+      const update = { $set: data };
+      const options = { upsert: true, new: true };
+      return await ChartLayoutMongo.findOneAndUpdate(query, update, options);
+    } else {
+      await sequelize.sync();
+      const existing = await ChartLayoutSQL.findOne({
+        where: { name: data.name, user_id: data.user_id, client_id: data.client_id }
+      });
+      if (existing) {
+        return await existing.update(data);
+      }
+      return await ChartLayoutSQL.create(data);
+    }
+  } catch (error) {
+    console.error('Error in saveChartLayout:', error);
+    throw error;
+  }
+};
+
+const getChartLayouts = async (userId, clientId) => {
+  try {
+    if (USE_MONGO) {
+      return await ChartLayoutMongo.find({ user_id: userId, client_id: clientId }).select('id name timestamp resolution symbol').exec();
+    } else {
+      await sequelize.sync();
+      return await ChartLayoutSQL.findAll({
+        where: { user_id: userId, client_id: clientId },
+        attributes: ['id', 'name', 'timestamp', 'resolution', 'symbol']
+      });
+    }
+  } catch (error) {
+    console.error('Error in getChartLayouts:', error);
+    return [];
+  }
+};
+
+const getChartLayoutById = async (id) => {
+  try {
+    if (USE_MONGO) {
+      return await ChartLayoutMongo.findById(id).exec();
+    } else {
+      await sequelize.sync();
+      return await ChartLayoutSQL.findByPk(id);
+    }
+  } catch (error) {
+    console.error('Error in getChartLayoutById:', error);
+    return null;
+  }
+};
+
+const deleteChartLayout = async (id) => {
+  try {
+    if (USE_MONGO) {
+      return await ChartLayoutMongo.findByIdAndDelete(id).exec();
+    } else {
+      await sequelize.sync();
+      const chart = await ChartLayoutSQL.findByPk(id);
+      if (chart) {
+        return await chart.destroy();
+      }
+      return null;
+    }
+  } catch (error) {
+    console.error('Error in deleteChartLayout:', error);
+    throw error;
+  }
+};
+
 export default {
   upsertInstrument52WeekStats,
   getAllInstrument52WeekStats,
@@ -387,4 +461,8 @@ export default {
   getUserByEmail,
   getUserById,
   getUserToken,
+  saveChartLayout,
+  getChartLayouts,
+  getChartLayoutById,
+  deleteChartLayout,
 };
