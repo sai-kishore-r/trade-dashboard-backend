@@ -14,7 +14,7 @@ setupCronJobs();
 server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`✅ User routes should be available at /api/users`);
-  intiateAccessTokenReq();
+  if (process.env.LOWER_ENV === "false") intiateAccessTokenReq();
 });
 
 const gracefulShutdown = (signal) => {
