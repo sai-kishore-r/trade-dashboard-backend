@@ -10,7 +10,7 @@ import mongoConnectionInstance from "./database/mongo.js";
 import { connectWsUpstoxs } from "./ws/index.js";
 import setupWebSocket from './ws/server.js'
 import upstoxs from "./controller/upstoxs.js";
-import scanRouter from "./controller/scan.js";
+import scanCriteriaController from "./controller/scanCriteria.js";
 import { upstoxAuth } from "./controller/auth.js";
 import userController from "./controller/userController.js";
 import tvController from "./controller/tv.js";
@@ -30,7 +30,7 @@ app.use(marketBreadthRouter);
 app.use(statsRouter);
 app.use(placeOrder);
 app.use(upstoxs);
-app.use("/scans", scanRouter);
+app.use("/scans", scanCriteriaController);
 app.use("/api/users", userController);
 app.get("/api/tv/1.1/charts", tvController.getCharts);
 app.post("/api/tv/1.1/charts", multer().none(), tvController.saveChart);
