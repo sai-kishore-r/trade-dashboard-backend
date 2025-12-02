@@ -86,7 +86,9 @@ upstoxs.get("/upstoxs/status", verifyToken, async (req, res) => {
     }
 
     const now = new Date();
-    if (new Date(tokenData.expires_at) < now) {
+    const expiresAt = tokenData.expires_at || tokenData.expiresAt;
+
+    if (new Date(expiresAt) < now) {
       return res.status(200).json({
         status: 'expired',
         config: {
