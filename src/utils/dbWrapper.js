@@ -148,7 +148,6 @@ async function upsertScans(data) {
           symbol: data.symbol,
           date: data.date,
           scanType: data.scanType,
-          tradingSymbol: data.tradingSymbol,
         };
         const update = { $set: data };
         const options = { upsert: true, new: true };

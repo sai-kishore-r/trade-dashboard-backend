@@ -14,6 +14,10 @@ const ScanSchema = new mongoose.Schema({
     type: String,
     required: true, // YYYY-MM-DD format for the trading day
   },
+  tradingSymbol: {
+    type: String,
+    required: false,
+  },
   extraData: {
     type: mongoose.Schema.Types.Mixed, // flexible JSON structure for additional scan data like OHLC, volume etc.
   },
